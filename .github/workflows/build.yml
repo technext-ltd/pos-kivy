@@ -11,7 +11,7 @@ jobs:
     timeout-minutes: 120
 
     steps:
-    # 1. Checkout repository
+    # 1. Checkout the code
     - name: Checkout code
       uses: actions/checkout@v4
 
@@ -31,61 +31,61 @@ jobs:
         pip install --upgrade pip wheel setuptools
         pip install buildozer cython==0.29.36
 
-    # 4. Install Android SDK & Build Tools
+    # 4. Install Android SDK + Build Tools
     - name: Install Android SDK
       run: |
-        echo "Downloading Android commandline tools..."
+        echo "Downloading Android command-line tools..."
         wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O cmdline-tools.zip
 
         echo "Extracting SDK..."
         mkdir -p $HOME/android-sdk/cmdline-tools
         unzip -q cmdline-tools.zip -d $HOME/android-sdk/cmdline-tools
 
-        # Move extracted folder to "latest" (required by sdkmanager)
+        # Rename folder to 'latest' (required for sdkmanager)
         mv $HOME/android-sdk/cmdline-tools/cmdline-tools $HOME/android-sdk/cmdline-tools/latest
 
-        # Add to PATH so Buildozer can find sdkmanager
+        # Add correct paths for GitHub Actions
         echo "ANDROID_SDK_ROOT=$HOME/android-sdk" >> $GITHUB_ENV
         echo "$HOME/android-sdk/cmdline-tools/latest/bin" >> $GITHUB_PATH
         echo "$HOME/android-sdk/platform-tools" >> $GITHUB_PATH
 
-        # Verify sdkmanager works
+        echo "Verifying sdkmanager..."
         $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager --version
 
         echo "Accepting licenses..."
         yes | $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=$HOME/android-sdk --licenses
 
-        echo "Installing essential SDK packages..."
+        echo "Installing required SDK components..."
         $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=$HOME/android-sdk \
           "platform-tools" \
           "platforms;android-34" \
           "build-tools;34.0.0"
 
-    # 5. Verify AIDL is present
+    # 5. Verify AIDL exists
     - name: Verify AIDL
       run: |
         if [ ! -f "$HOME/android-sdk/build-tools/34.0.0/aidl" ]; then
-          echo "AIDL is missing!"
+          echo "ERROR: AIDL not found!"
           exit 1
         else
-          echo "AIDL is correctly installed."
+          echo "AIDL found successfully."
           ls -l $HOME/android-sdk/build-tools/34.0.0/aidl
         fi
 
-    # 6. Clean Buildozer cache to avoid old SDK paths
+    # 6. Clear old Buildozer cache (important!)
     - name: Clean Buildozer cache
       run: rm -rf .buildozer
 
-    # 7. Build APK
+    # 7. Build APK using Buildozer
     - name: Build APK with Buildozer
       env:
-        ANDROIDSDK: $HOME/android-sdk
+        ANDROIDSDK: /home/runner/android-sdk
       run: |
         export PATH=$HOME/android-sdk/build-tools/34.0.0:$PATH
         export PATH=$HOME/android-sdk/platform-tools:$PATH
         buildozer -v android debug
 
-    # 8. Upload APK
+    # 8. Upload generated APK as GitHub artifact
     - name: Upload APK artifact
       uses: actions/upload-artifact@v4
       with:
