@@ -1,28 +1,20 @@
 [app]
+# Your existing settings
 title = POS System
-package.name = posapp
-package.domain = org.yourname
-
+package.name = pos_system
+package.domain = org.example
 source.dir = .
-source.include_exts = py,png,jpg,kv,atlas,json
+source.include_exts = py,png,jpg,kv,atlas
 
-version = 1.0
-requirements = python3,kivy,openssl
-
-orientation = portrait
-osx.python_version = 3
-
-fullscreen = 0
-android.api = 33
+# Android API levels
+android.api = 34
 android.minapi = 21
 
-[buildozer]
-log_level = 2
-warn_on_root = 1
+# Disable automatic SDK download
+android.sdk_path = /home/runner/android-sdk
 
-# Android specific
-android.accept_sdk_license = True
-android.arch = arm64-v8a
+# Ensure the correct NDK path
+android.ndk_path = /home/runner/android-sdk/ndk-bundle
 
-# Permissions
-android.permissions = INTERNET,WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE
+# Build tools version
+android.build_tools_version = 34.0.0
