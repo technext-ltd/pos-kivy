@@ -42,10 +42,6 @@ jobs:
         python3 -m pip install --upgrade pip wheel setuptools
         python3 -m pip install buildozer cython==0.29.36
 
-    - name: Initialize Buildozer
-      run: |
-        buildozer init
-
     - name: Build APK with Buildozer
       run: |
         buildozer -v android debug
