@@ -1,0 +1,34 @@
+name: Build APK
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Install Dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y python3-pip python3-setuptools python3-dev \
+            build-essential git zip unzip openjdk-17-jdk \
+            libssl-dev libffi-dev libsqlite3-dev zlib1g-dev
+
+      - name: Install Buildozer
+        run: pip install buildozer
+
+      - name: Build APK
+        run: |
+          buildozer init || true
+          buildozer -v android debug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: pos-apk
+          path: bin/*.apk
