@@ -9,6 +9,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    # Set ANDROID_SDK_ROOT globally for the entire job
+    env:
+      ANDROID_SDK_ROOT: /home/runner/android-sdk 👈 NEW
+      ANDROIDSDK: /home/runner/android-sdk   👈 EXISTING, but ensuring consistency
 
     steps:
     - name: Checkout code
@@ -25,9 +29,12 @@ jobs:
 
     - name: Install Android SDK
       run: |
+        # Use ANDROID_SDK_ROOT from job env to establish the path
+        SDK_ROOT=$ANDROID_SDK_ROOT
+        
         # Create directory for Android SDK and command-line tools
-        mkdir -p /home/runner/android-sdk/cmdline-tools
-        cd /home/runner/android-sdk/cmdline-tools
+        mkdir -p $SDK_ROOT/cmdline-tools
+        cd $SDK_ROOT/cmdline-tools
         
         # Download, unzip, and structure the command-line tools
         wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
@@ -35,15 +42,15 @@ jobs:
         mkdir latest
         mv cmdline-tools/* latest/
         
-        # Add the 'bin' directory to the PATH for this step
-        export PATH=$PATH:/home/runner/android-sdk/cmdline-tools/latest/bin
+        # Define the full path to the sdkmanager binary
+        SDKMANAGER=$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager
         
         # Accept licenses (required before installing components)
-        yes | sdkmanager --sdk_root=/home/runner/android-sdk --licenses
+        yes | $SDKMANAGER --sdk_root=$SDK_ROOT --licenses
         
         # Install necessary SDK components (platform-tools, Android platform, build-tools)
-        sdkmanager \
-          --sdk_root=/home/runner/android-sdk \
+        $SDKMANAGER \
+          --sdk_root=$SDK_ROOT \
           "platform-tools" \
           "platforms;android-34" \
           "build-tools;34.0.0"
@@ -54,8 +61,7 @@ jobs:
         pip install buildozer cython==0.29.36
 
     - name: Build APK with Buildozer
-      env:
-        ANDROIDSDK: /home/runner/android-sdk
+      # The env variables are now set at the job level for better reliability
       run: |
         buildozer -v android debug
 
