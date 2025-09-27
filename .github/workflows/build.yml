@@ -8,24 +8,33 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 120
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Install dependencies
+    - name: Install system dependencies
       run: |
         sudo apt update
-        sudo apt install -y python3-pip python3-dev git openjdk-17-jdk zip
-        pip install buildozer
+        sudo apt install -y \
+          python3-pip python3-dev python3-venv \
+          git openjdk-17-jdk zip unzip \
+          build-essential ccache \
+          libssl-dev libffi-dev libsqlite3-dev
 
-    - name: Build APK
+    - name: Install Python packages
       run: |
-        buildozer android debug
+        pip install --upgrade pip wheel setuptools
+        pip install buildozer cython==0.29.36
 
-    - name: Upload APK
+    - name: Build APK with Buildozer
+      run: |
+        buildozer -v android debug
+
+    - name: Upload APK artifact
       uses: actions/upload-artifact@v4
       with:
-        name: pos-apk
+        name: pos-system-apk
         path: bin/*.apk
+        retention-days: 30
