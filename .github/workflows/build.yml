@@ -2,86 +2,30 @@ name: Build APK
 
 on:
   push:
-    branches:
-      - main
-  workflow_dispatch:  # Allow manual triggers
+    branches: [main]
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 90
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
+    - name: Install dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y python3-pip python3-dev git openjdk-17-jdk zip
+        pip install buildozer
 
-      - name: Install System Dependencies
-        run: |
-          sudo apt update
-          sudo apt install -y \
-            python3-pip python3-setuptools python3-dev \
-            build-essential git zip unzip openjdk-17-jdk \
-            libssl-dev libffi-dev libsqlite3-dev zlib1g-dev \
-            autoconf automake libtool pkg-config \
-            libncurses5-dev libltdl-dev
+    - name: Build APK
+      run: |
+        buildozer android debug
 
-      - name: Install Python Packages
-        run: |
-          pip install --upgrade pip setuptools wheel
-          pip install buildozer cython virtualenv
-
-      - name: Configure Buildozer
-        run: |
-          buildozer init
-          # Create minimal buildozer.spec if not exists
-          if [ ! -f buildozer.spec ]; then
-            cat > buildozer.spec << 'EOF'
-[app]
-title = POS System
-package.name = posapp
-package.domain = org.example
-
-source.dir = .
-source.include_exts = py,png,jpg,kv,atlas,json
-
-version = 0.1
-requirements = python3,kivy
-
-orientation = portrait
-osx.python_version = 3
-
-fullscreen = 0
-android.api = 33
-android.minapi = 21
-
-[buildozer]
-log_level = 2
-warn_on_root = 1
-EOF
-          fi
-
-      - name: Build APK (Debug)
-        run: |
-          buildozer -v android debug
-        timeout-minutes: 60
-
-      - name: Upload APK Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: pos-apk-debug
-          path: bin/*.apk
-          retention-days: 30
-
-      - name: Upload Build Logs
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-logs
-          path: |
-            .buildozer
-            buildozer.spec
-          retention-days: 7
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: pos-apk
+        path: bin/*.apk
