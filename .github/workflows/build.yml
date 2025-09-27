@@ -11,11 +11,11 @@ jobs:
     timeout-minutes: 120
 
     steps:
-    # 1. Checkout the code
+    # 1. Checkout your code
     - name: Checkout code
       uses: actions/checkout@v4
 
-    # 2. Install dependencies
+    # 2. Install required system dependencies
     - name: Install system dependencies
       run: |
         sudo apt update
@@ -31,7 +31,7 @@ jobs:
         pip install --upgrade pip wheel setuptools
         pip install buildozer cython==0.29.36
 
-    # 4. Install Android SDK + Build Tools
+    # 4. Install Android SDK manually
     - name: Install Android SDK
       run: |
         echo "Downloading Android command-line tools..."
@@ -41,10 +41,10 @@ jobs:
         mkdir -p $HOME/android-sdk/cmdline-tools
         unzip -q cmdline-tools.zip -d $HOME/android-sdk/cmdline-tools
 
-        # Rename folder to 'latest' (required for sdkmanager)
+        # Rename folder to 'latest' for sdkmanager
         mv $HOME/android-sdk/cmdline-tools/cmdline-tools $HOME/android-sdk/cmdline-tools/latest
 
-        # Add correct paths for GitHub Actions
+        # Export environment variables
         echo "ANDROID_SDK_ROOT=$HOME/android-sdk" >> $GITHUB_ENV
         echo "$HOME/android-sdk/cmdline-tools/latest/bin" >> $GITHUB_PATH
         echo "$HOME/android-sdk/platform-tools" >> $GITHUB_PATH
@@ -69,14 +69,13 @@ jobs:
           exit 1
         else
           echo "AIDL found successfully."
-          ls -l $HOME/android-sdk/build-tools/34.0.0/aidl
         fi
 
-    # 6. Clear old Buildozer cache (important!)
+    # 6. Clean old Buildozer cache
     - name: Clean Buildozer cache
       run: rm -rf .buildozer
 
-    # 7. Build APK using Buildozer
+    # 7. Build APK
     - name: Build APK with Buildozer
       env:
         ANDROIDSDK: /home/runner/android-sdk
@@ -85,7 +84,7 @@ jobs:
         export PATH=$HOME/android-sdk/platform-tools:$PATH
         buildozer -v android debug
 
-    # 8. Upload generated APK as GitHub artifact
+    # 8. Upload generated APK
     - name: Upload APK artifact
       uses: actions/upload-artifact@v4
       with:
