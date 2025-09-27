@@ -1,54 +1,35 @@
 [app]
-
-# Name of your app
 title = POS System
-
-# Package name (no spaces or special characters)
 package.name = posapp
+package.domain = org.example
 
-# Unique domain for your app
-package.domain = org.yourname
-
-# Main folder where your code is
 source.dir = .
+source.include_exts = py,png,jpg,kv,atlas,json
 
-# Main entry file
-source.main = pos2.py
-
-# Application version
 version = 0.1
+requirements = python3,kivy,openssl
 
-# List of Python modules your app needs
-requirements = python3,kivy
+presplash.filename = %(source.dir)s/presplash.png
+icon.filename = %(source.dir)s/icon.png
 
-# Orientation of the app: portrait or landscape
 orientation = portrait
+osx.python_version = 3
+osx.kivy_version = 2.3.0
 
-# Fullscreen mode (1 = fullscreen, 0 = normal window)
 fullscreen = 0
-
-# Permissions your app needs (important for reading/writing JSON files)
-android.permissions = WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE
-
-# Optional: Set a custom app icon
-# icon.filename = %(source.dir)s/icon.png
-
-# Minimum Android API level
-android.api = 31
-
-# Target Android API level
+android.api = 33
 android.minapi = 21
-
-# Hide the title bar
-show_status_bar = 0
-
-# Optimize APK size
-android.release_artifact = app-release.apk
+android.ndk = 25b
+android.sdk = 34
+android.ndk_path = 
+android.sdk_path = 
 
 [buildozer]
-
-# Log level: 1 (quiet) to 2 (debug)
 log_level = 2
-
-# Ignore warnings about running as root
 warn_on_root = 1
+
+[app]
+android.permissions = INTERNET,WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE
+
+# Add this section for Android
+android.arch = arm64-v8a,armeabi-v7a
