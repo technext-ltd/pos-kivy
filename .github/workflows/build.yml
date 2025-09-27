@@ -20,12 +20,13 @@ jobs:
             build-essential git zip unzip openjdk-17-jdk \
             libssl-dev libffi-dev libsqlite3-dev zlib1g-dev
 
-      - name: Install Buildozer
-        run: pip install buildozer
+      - name: Install Python Packages
+        run: |
+          pip install --upgrade pip
+          pip install buildozer cython
 
       - name: Build APK
         run: |
-          buildozer init || true
           buildozer -v android debug
 
       - name: Upload APK
