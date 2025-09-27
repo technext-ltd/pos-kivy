@@ -15,6 +15,45 @@ from kivy.clock import Clock
 import json
 import os
 from datetime import datetime
+import os
+from pathlib import Path
+
+# Android-compatible file paths
+def get_data_directory():
+    """Get writable data directory for Android and desktop"""
+    if 'ANDROID_ARGUMENT' in os.environ:
+        # On Android, use app's data directory
+        from android.storage import app_storage_path
+        return Path(app_storage_path())
+    else:
+        # On desktop, use current directory
+        return Path('.')
+
+DATA_DIR = get_data_directory()
+
+# Update file paths in your classes
+class ProductInputScreen(Screen):
+    PRODUCTS_FILE = str(DATA_DIR / 'products.json')
+    
+    def ensure_products_file(self):
+        # Create directory if needed
+        DATA_DIR.mkdir(exist_ok=True)
+        if not os.path.exists(self.PRODUCTS_FILE):
+            save_json_file(self.PRODUCTS_FILE, {})
+
+class ProductScannerScreen(Screen):
+    PRODUCTS_FILE = str(DATA_DIR / 'products.json')
+    CUSTOMERS_FILE = str(DATA_DIR / 'customers.json')
+    
+    def ensure_files(self):
+        DATA_DIR.mkdir(exist_ok=True)
+        if not os.path.exists(self.PRODUCTS_FILE):
+            save_json_file(self.PRODUCTS_FILE, {})
+        if not os.path.exists(self.CUSTOMERS_FILE):
+            save_json_file(self.CUSTOMERS_FILE, {})
+
+class CustomerViewerScreen(Screen):
+    CUSTOMERS_FILE = str(DATA_DIR / 'customers.json')
 
 Builder.load_string('''
 <MainScreen>:
