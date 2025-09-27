@@ -9,10 +9,11 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    # Set ANDROID_SDK_ROOT globally for the entire job
+    
+    # Set the Android SDK location globally for the entire job
     env:
-      ANDROID_SDK_ROOT: /home/runner/android-sdk 👈 NEW
-      ANDROIDSDK: /home/runner/android-sdk   👈 EXISTING, but ensuring consistency
+      ANDROID_SDK_ROOT: /home/runner/android-sdk
+      ANDROIDSDK: /home/runner/android-sdk
 
     steps:
     - name: Checkout code
@@ -29,12 +30,13 @@ jobs:
 
     - name: Install Android SDK
       run: |
-        # Use ANDROID_SDK_ROOT from job env to establish the path
-        SDK_ROOT=$ANDROID_SDK_ROOT
+        # Use the job-level environment variable ANDROID_SDK_ROOT directly.
         
         # Create directory for Android SDK and command-line tools
-        mkdir -p $SDK_ROOT/cmdline-tools
-        cd $SDK_ROOT/cmdline-tools
+        mkdir -p $ANDROID_SDK_ROOT/cmdline-tools
+        
+        # Change directory to command-line tools directory
+        cd $ANDROID_SDK_ROOT/cmdline-tools
         
         # Download, unzip, and structure the command-line tools
         wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
@@ -43,14 +45,14 @@ jobs:
         mv cmdline-tools/* latest/
         
         # Define the full path to the sdkmanager binary
-        SDKMANAGER=$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager
+        SDKMANAGER="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
         
         # Accept licenses (required before installing components)
-        yes | $SDKMANAGER --sdk_root=$SDK_ROOT --licenses
+        yes | $SDKMANAGER --sdk_root="$ANDROID_SDK_ROOT" --licenses
         
         # Install necessary SDK components (platform-tools, Android platform, build-tools)
         $SDKMANAGER \
-          --sdk_root=$SDK_ROOT \
+          --sdk_root="$ANDROID_SDK_ROOT" \
           "platform-tools" \
           "platforms;android-34" \
           "build-tools;34.0.0"
@@ -61,7 +63,7 @@ jobs:
         pip install buildozer cython==0.29.36
 
     - name: Build APK with Buildozer
-      # The env variables are now set at the job level for better reliability
+      # Uses the ANDROIDSDK environment variable set globally
       run: |
         buildozer -v android debug
 
