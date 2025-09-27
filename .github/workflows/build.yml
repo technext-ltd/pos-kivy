@@ -25,23 +25,38 @@ jobs:
 
     - name: Install Android SDK
       run: |
-        mkdir -p /home/runner/android-sdk/cmdline-tools
-        cd /home/runner/android-sdk/cmdline-tools
-        wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
-        unzip commandlinetools-linux-11076708_latest.zip
-        mkdir latest
-        mv cmdline-tools/* latest/
-        export PATH=$PATH:/home/runner/android-sdk/cmdline-tools/latest/bin
-        sdkmanager --sdk_root=/home/runner/android-sdk "platform-tools" "platforms;android-34" "build-tools;34.0.0"
+        # Create Android SDK directory
+        mkdir -p $HOME/android-sdk
+        
+        # Download and install command line tools
+        cd $HOME/android-sdk
+        wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+        unzip -q commandlinetools-linux-11076708_latest.zip
+        mkdir -p cmdline-tools/latest
+        mv cmdline-tools/* cmdline-tools/latest/
+        
+        # Set environment variables
+        echo "ANDROID_HOME=$HOME/android-sdk" >> $GITHUB_ENV
+        echo "ANDROID_SDK_ROOT=$HOME/android-sdk" >> $GITHUB_ENV
+        echo "$HOME/android-sdk/cmdline-tools/latest/bin:$HOME/android-sdk/platform-tools" >> $GITHUB_PATH
+        
+        # Accept licenses and install components
+        yes | sdkmanager --sdk_root=$ANDROID_HOME --licenses
+        sdkmanager --sdk_root=$ANDROID_HOME "platform-tools" "platforms;android-34" "build-tools;34.0.0"
 
     - name: Install Python packages
       run: |
-        pip install --upgrade pip wheel setuptools
-        pip install buildozer cython==0.29.36
+        python3 -m pip install --upgrade pip wheel setuptools
+        python3 -m pip install buildozer cython==0.29.36
+
+    - name: Initialize Buildozer
+      run: |
+        buildozer init
 
     - name: Build APK with Buildozer
       env:
-        ANDROIDSDK: /home/runner/android-sdk
+        ANDROID_HOME: ${{ env.ANDROID_HOME }}
+        ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
       run: |
         buildozer -v android debug
 
